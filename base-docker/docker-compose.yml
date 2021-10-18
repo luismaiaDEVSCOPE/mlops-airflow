@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  jupyter:
+    build: .
+    environment:
+      PYTHON_SEED: 12345
+    volumes:
+      - ..\mlproject\clients:/home/jovyan/work
+    ports:
+      - 8888:8888
