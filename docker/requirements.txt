@@ -1,0 +1,5 @@
+xlrd
+pymssql
+simplejson
+pyodbc
+unidecode
