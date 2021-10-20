@@ -1,5 +1,6 @@
 xlrd
 pymssql
 simplejson
-pyodbc
 unidecode
+apache-airflow-providers-papermill
+plyvel
