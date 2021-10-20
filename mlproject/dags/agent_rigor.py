@@ -83,7 +83,7 @@ def predict_function():
     virtualenv_task = PythonVirtualenvOperator(
         task_id="run_predict",
         python_callable=exec_notebook.run,
-        requirements=['pandas','sklearn','matplotlib'],
+        requirements=['jupyter','ipykernel', 'pandas','sklearn','matplotlib','papermill'],
         system_site_packages=False,
         dag=dag,
         provide_context=True,
