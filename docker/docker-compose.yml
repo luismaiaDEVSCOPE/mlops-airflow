@@ -77,7 +77,7 @@ x-airflow-common:
       condition: service_healthy
 
 services:
-  airflow-scheduler:
+  mlflow:
     <<: *airflow-common
     command: mlflow ui --backend-store-uri /data/mlflow --default-artifact-root /data/mlflow/artifacts --host 0.0.0.0
     # healthcheck:
