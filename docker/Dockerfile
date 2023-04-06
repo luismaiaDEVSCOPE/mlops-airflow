@@ -7,7 +7,7 @@
 FROM apache/airflow:2.2.0-python3.8
 USER root
 RUN pip install --no-cache-dir lxml
-RUN pip install jupyter
+RUN pip install mlflow jupyter 
 COPY ./requirements.txt /home/requirements.txt
 RUN pip install -r /home/requirements.txt
 USER airflow
