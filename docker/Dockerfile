@@ -4,10 +4,17 @@
 # build:
 #   context: .
 #
-FROM apache/airflow:2.2.0-python3.8
+FROM ubuntu:20.04
 USER root
-RUN pip install --no-cache-dir lxml
-RUN pip install jupyter
-COPY ./requirements.txt /home/requirements.txt
-RUN pip install -r /home/requirements.txt
-USER airflow
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update
+RUN apt-get -y install \
+    python3.10 \
+    python3-pip \
+    python-is-python3
+RUN apt-get clean
+
+WORKDIR /app
+
+RUN pip install mlflow
