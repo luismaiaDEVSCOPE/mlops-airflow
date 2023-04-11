@@ -67,8 +67,9 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/engine:/opt/airflow/engine
     - ${AIRFLOW_PROJ_DIR:-.}/datasets:/opt/airflow/datasets
+    - ${AIRFLOW_PROJ_DIR:-.}/clients:/opt/airflow/clients
   user: "${AIRFLOW_UID:-50000}:0"
-  command: chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,engine,datasets}
+  command: chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,engine,datasets,clients}
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -241,7 +242,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins /sources/datasets
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,datasets}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,datasets,clients}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
