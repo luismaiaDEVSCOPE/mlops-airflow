@@ -5,6 +5,7 @@ import sqlalchemy
 import airflow.providers.papermill.operators.papermill as afl_pml
 # from airflow.providers.papermill.operators.papermill import PapermillOperator
 
+
 def task_run_notebook(filepath: str) :
     assert os.path.exists(filepath)
 
@@ -24,15 +25,19 @@ def requirments_as_list(requirements_path: str) :
 
     try:
         with open(requirements_path, 'r') as f :
-            for line in f.readlines():
-                print(line)
-                requirements.append(line.rstrip())
+            for line in f.readlines() :
+                line = line.strip()
+
+                if not line.startswith("#") :
+                    print(line)
+                    requirements.append(line)
 
     except Exception as ex:
         print(ex)
         raise
 
     return requirements
+
 
 # TODO: check apache-airflow-providers-common-sql and the examples
 def sql_to_pandas(statement: str, db_url: str) :
