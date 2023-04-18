@@ -43,36 +43,44 @@ args = {
 @dag(schedule_interval="2 * * * *", #"@daily",
     start_date=datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0),
     catchup=False,
-    tags=["learn"],
+    tags=["learn precedence and return statements"],
     )
 
-def learning_worflow() :
+def learning_worflow2() :
 
     @task
-    def extract_data_function() :
-        data = [*range(1,11)] 
-        print(data)
+    def extract_data_function(value) :
+        if value :
+            data = [*range(1,11)] 
+            print(data)
 
-        return data
+            return data
 
-
-    @task
-    def transform_data_function(data: list) :
-        print(" in: %s" % (str(data)))
-        data = [i*2 for i in data]
-    
-        print("out: %s" % (str(data)))
-        return data
+        return []
 
     @task
-    def load_data_function(data: list) :
-        print(data)
+    def transform_data_function(data: list, value) :
+        if value :
+
+            print(" in: %s" % (str(data)))
+            data = [i*2 for i in data]
         
+            print("out: %s" % (str(data)))
+            return data
+
+        return []
+
+    @task
+    def load_data_function(data: list, data2: list) :
+        print(data)
+        print(data2)
+
         with open("/opt/airflow/vals.txt", "w") as f :
             for i in data :
                 f.write(f"{i}\n")
 
         assert os.path.exists("/opt/airflow/vals.txt")
+
 
     @task
     def check_db_connect() :
@@ -90,14 +98,21 @@ def learning_worflow() :
             print(res.fetchall())
     
 
+    @task
+    def get_dependency() :
+        return True
+
     # definition
 
-    data = extract_data_function()
-    data = transform_data_function(data)
-    load_data_function(data)
+    dep = get_dependency()
+
+    data = extract_data_function(dep)
+    data_trans = transform_data_function([*range(10, 110, 10)], dep)
+
+
+    load_data_function(data_trans, data)
     check_db_connect()
 
-    # start_node = DummyOperator(task_id='workflow_start', dag=dag)
     # end_node = DummyOperator(task_id='workflow_finish', dag=dag)
 
     # def create_graph() :
@@ -106,4 +121,4 @@ def learning_worflow() :
 
     # create_graph()
 
-learning_worflow()
+learning_worflow2()

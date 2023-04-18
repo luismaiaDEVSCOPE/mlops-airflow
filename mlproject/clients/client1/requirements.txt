@@ -2,3 +2,9 @@ pandas==1.3.3
 sklearn
 sqlalchemy
 pymssql
+xlrd
+simplejson
+unidecode
+papermill
+apache-airflow-providers-papermill
+plyvel
