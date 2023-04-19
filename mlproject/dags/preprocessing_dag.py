@@ -1,34 +1,34 @@
 
 from __future__ import annotations
-import sys, os
+
+import os
 import datetime
-from airflow.models import DAG
+# from airflow.models import DAG
 
-# pip install apache-airflow-providers-papermil was missing
+# pip install apache-airflow-providers-papermil was missing # USED .env file
 
-from  airflow.providers.papermill.operators.papermill import PapermillOperator
-# from airflow.operators.papermill_operator import PapermillOperator
+from airflow.providers.papermill.operators.papermill import PapermillOperator
+#from airflow.operators.python import PythonVirtualenvOperator
 from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOperator
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.bash_operator import BashOperator
-from airflow.decorators import dag, task
+# from airflow.operators.dummy_operator import DummyOperator
+# from airflow.operators.bash_operator import BashOperator
+from airflow.decorators import dag #, task
 from airflow.sensors.python import PythonSensor
 
-from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
-import pandas as pd
-import papermill as pm
+# from sqlalchemy import create_engine
+# from sqlalchemy.engine import URL
+# import pandas as pd
 
-# Using db from https://rnacentral.org/help/public-database
-url_object = URL.create('postgresql+psycopg2', 
-    username='reader', password='NWDMCE5xdipIjRrp', 
-    host='hh-pgsql-public.ebi.ac.uk', port='5432', 
-    database='pfmegrnargs')
+# # Using db from https://rnacentral.org/help/public-database
+# url_object = URL.create('postgresql+psycopg2', 
+#     username='reader', password='NWDMCE5xdipIjRrp', 
+#     host='hh-pgsql-public.ebi.ac.uk', port='5432', 
+#     database='pfmegrnargs')
 
-def run_db_statement(statement) :
-    with create_engine(url_object).connect() as conn :
-        res = conn.execute(statement)
-        yield pd.DataFrame(res.fetchall(), columns=res.keys())
+# def run_db_statement(statement) :
+#     with create_engine(url_object).connect() as conn :
+#         res = conn.execute(statement)
+#         yield pd.DataFrame(res.fetchall(), columns=res.keys())
 
 args = {
     'depends_on_past': False,
@@ -70,7 +70,7 @@ def preprocess_worflow() :
     #     consultas = run_db_statement(statement2)
     #     # write file to csv
 
-    #     statement3 = 'SELECT * FROM Marcacao where NUM_SEUQNCIAL in (%s)AND DAYS(%s - DATA_CONSULTA) <= 30;' % (today, nums_sequenciais)
+    #     statement3 = 'SELECT * FROM Marcacao where NUM_SEUQNCIAL in (%s) AND DAYS(%s - DATA_CONSULTA) <= 30;' % (today, nums_sequenciais)
     #     consultas_marcacao = run_db_statement(statement3)
     #     # update consulta_marcacao.csv
 
@@ -78,7 +78,7 @@ def preprocess_worflow() :
 
     #@task()
     def inference(test_ds) :
-        return test_ds
+        print(test_ds)
 
 
     #@task()
@@ -88,48 +88,40 @@ def preprocess_worflow() :
 
     # is_updated = check_data_is_updated()
     def task_run_notebook(filepath: str) :
+        import papermill as pm
         assert os.path.exists(filepath)
         location, name = os.path.split(filepath)
 
-        pm.execute_notebook(
-            filepath,
-            os.path.join(location, f"out_{name}"),
-            kernel_name='python3'
+        return PapermillOperator(
+            task_id=f"run_{name}",
+            input_nb=filepath, 
+            output_nb=os.path.join(location, "out_folder", name),
+            # parameters={"msgs": "Ran from Airflow at {{ execution_date }}!"},
         )
 
-    # @task()
-    t1 = PythonSensor(
-        task_id="run_1_train_test_split_ipynb", 
-        python_callable=task_run_notebook(filepath="/opt/airflow/dags/notebooks/1_train_test_split.ipynb")
-    )
+    t1 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/data_split.ipynb")
+ 
+    t2 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/geo.ipynb")
 
-    # t2 = PythonSensor(
-    #     task_id="run_geo_ipynb", 
-    #     python_callable=task_run_notebook(filepath="/opt/airflow/dags/notebooks/geo.ipynb")
-    # )
+    t3 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
 
-    t3 = PythonSensor(
-        task_id="run_utente_ipynb", 
-        python_callable=task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
-    )
-
-    t4 = PythonSensor(
-        task_id="run_2_cl_dataset_ipynb", 
-        python_callable=task_run_notebook(filepath="/opt/airflow/dags/notebooks/2_cl_dataset.ipynb")
-    )
+    t4 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/main_data_prep.ipynb")
     
+
+
     t5 = PythonSensor(
         task_id="inference_task", 
         python_callable=inference("yay")
     )
+
 
     t6 = PythonSensor(
         task_id="save_task", 
         python_callable=load_preds_to_db("yay")
     )
 
-    [t3, t4] << t5 << t6
-    #t2 >> t3
+    [t3, t4] >> t5 >> t6
+    t2 >> t3
     t1 >> t4
 
 preprocess_worflow()

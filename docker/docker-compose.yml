@@ -68,8 +68,13 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/engine:/opt/airflow/engine
     - ${AIRFLOW_PROJ_DIR:-.}/datasets:/opt/airflow/datasets
     - ${AIRFLOW_PROJ_DIR:-.}/clients:/opt/airflow/clients
+    - ../prj_requirements:/opt/airflow/requirements
   user: "${AIRFLOW_UID:-50000}:0"
-  command: chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,engine,datasets,clients}
+  command:
+      - -c
+      - |
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,engine,datasets,clients}
+        pip install -r /opt/airflow/requirements/requirements.txt
   depends_on:
     &airflow-common-depends-on
     redis:
