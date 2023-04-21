@@ -4,19 +4,14 @@
 # build:
 #   context: .
 #
-FROM ubuntu:20.04
+FROM apache/airflow:2.5.1-python3.8
 USER root
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN apt update
+RUN apt install libgomp1
+USER airflow
 
-RUN apt-get update
-RUN apt-get -y install \
-    python3.10 \
-    python3-pip \
-    python-is-python3
-RUN apt-get clean
-
-WORKDIR /app
-
-RUN pip install mlflow
-
+# RUN pip install --no-cache-dir lxml
+RUN pip install jupyter
+COPY ./requirements.txt /home/requirements.txt
+RUN pip install -r /home/requirements.txt

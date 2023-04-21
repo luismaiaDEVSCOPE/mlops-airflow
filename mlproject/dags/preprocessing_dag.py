@@ -106,13 +106,13 @@ def preprocess_worflow() :
     t3 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
 
     t4 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/main_data_prep.ipynb")
-    
 
+    # t5 = PythonSensor(
+    #     task_id="inference_task", 
+    #     python_callable=inference("yay")
+    # )
 
-    t5 = PythonSensor(
-        task_id="inference_task", 
-        python_callable=inference("yay")
-    )
+    t5 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/inference_4_prod.ipynb")
 
 
     t6 = PythonSensor(

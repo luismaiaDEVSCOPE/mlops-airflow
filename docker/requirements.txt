@@ -1,0 +1,16 @@
+xlrd
+pymssql
+simplejson
+unidecode
+papermill
+apache-airflow-providers-papermill
+plyvel
+numpy
+pandas
+geopy
+imblearn
+lightgbm
+xgboost
+category_encoders
+hyperopt
+scikit-learn
