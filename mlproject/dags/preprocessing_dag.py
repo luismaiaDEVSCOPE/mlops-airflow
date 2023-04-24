@@ -44,7 +44,7 @@ args = {
     'dagbag_import_timeout': 600
 }
 
-@dag(schedule_interval="2 * * * *", #"@daily",
+@dag(schedule_interval="0 0 1 * * *", #"@daily",
     start_date=datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0),
     catchup=False,
     tags=["prepro"],
@@ -77,13 +77,15 @@ def preprocess_worflow() :
     #     return True
 
     #@task()
-    def inference(test_ds) :
-        print(test_ds)
+
+    def geo_coords_task() :
+        from geo import geo_script
+        geo_script()
 
 
     #@task()
-    def load_preds_to_db(preds) :
-        print(preds)
+    def load_preds_to_db() :
+        print("yay")
 
 
     # is_updated = check_data_is_updated()
@@ -101,7 +103,12 @@ def preprocess_worflow() :
 
     t1 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/data_split.ipynb")
  
-    t2 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/geo.ipynb")
+    # t2 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/geo.ipynb")
+
+    t2 = PythonSensor(
+        task_id="geo_task", 
+        python_callable=geo_coords_task
+    )
 
     t3 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
 
@@ -117,7 +124,7 @@ def preprocess_worflow() :
 
     t6 = PythonSensor(
         task_id="save_task", 
-        python_callable=load_preds_to_db("yay")
+        python_callable=load_preds_to_db()
     )
 
     [t3, t4] >> t5 >> t6
