@@ -72,7 +72,9 @@ def geo_script() :
         geografia['lon'] = pd.DataFrame({'coord':geo_output.tolist()}).coord.apply(lambda x: x[1][1] if get_coord(x)!=None else None)
         geografia.astype('str').to_parquet('/opt/airflow/datasets/absenteeism/geografia_coord.parquet', compression='gzip')
 
-        geografia.head()
+        # geografia.head()
+
+        exit
 
     else :
         print("Done")

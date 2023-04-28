@@ -14,3 +14,4 @@ xgboost
 category_encoders
 hyperopt
 scikit-learn
+mlflow

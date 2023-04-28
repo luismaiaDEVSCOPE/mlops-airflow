@@ -125,6 +125,7 @@ services:
       timeout: 10s
       retries: 5
     restart: always
+    # network_mode: "host"
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -160,6 +161,17 @@ services:
       # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
       DUMB_INIT_SETSID: "0"
     restart: always
+    network_mode: "host"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+      - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+      - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+      - ${AIRFLOW_PROJ_DIR:-.}/engine:/opt/airflow/engine
+      - ${AIRFLOW_PROJ_DIR:-.}/datasets:/opt/airflow/datasets
+      - ${AIRFLOW_PROJ_DIR:-.}/clients:/opt/airflow/clients
+      - ../prj_requirements:/opt/airflow/requirements
+      - ../artifacts:/data
+
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -295,3 +307,8 @@ services:
 
 volumes:
   postgres-db-volume:
+  
+
+# networks:
+#   mlflow-net:
+#     name: mlflow-net

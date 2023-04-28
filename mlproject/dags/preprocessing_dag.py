@@ -85,6 +85,7 @@ def preprocess_worflow() :
 
     #@task()
     def load_preds_to_db() :
+        # mlflow.sklearn.log_model(clf, RUN_NAME)
         print("yay")
 
 
@@ -124,8 +125,10 @@ def preprocess_worflow() :
 
     t6 = PythonSensor(
         task_id="save_task", 
-        python_callable=load_preds_to_db()
+        python_callable=load_preds_to_db
     )
+
+    # testing connection = host.docker.internal:1434 ou host.docker.internal:1433
 
     [t3, t4] >> t5 >> t6
     t2 >> t3
