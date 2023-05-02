@@ -147,6 +147,7 @@ services:
 
   airflow-worker:
     <<: *airflow-common
+    build: ./airflow_worker
     command: celery worker
     healthcheck:
       test:
