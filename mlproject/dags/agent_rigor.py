@@ -106,4 +106,4 @@ end_node = DummyOperator(task_id='etl_finish', dag=dag)
 def create_graph():
     start_node >> extract_data_function() >> [this_will_fail(), predict_function()] >> end_node
 
-# create_graph()
+create_graph()

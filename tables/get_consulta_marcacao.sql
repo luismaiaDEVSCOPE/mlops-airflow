@@ -16,5 +16,3 @@ WHERE
     AND "Tipo Consulta" IS "Consulta Médica"
     -- AND "Data Marcação Consulta" >= 1/1/2021; -- Redundant
 ;
-    
-

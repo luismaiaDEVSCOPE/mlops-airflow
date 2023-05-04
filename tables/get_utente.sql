@@ -3,6 +3,6 @@ SELECT
     "Código Unidade Saúde", "Unidade Saúde"
 FROM [db_name].[Views].[Utente]
 WHERE 
-    -- NUMS: List of N_Sequencial of the appoitments for ConsultaMarcação
+    -- NUMS: List of N_Sequencial of the appointments for ConsultaMarcação
     "Nº Sequencial" IN (NUMS)
 ;

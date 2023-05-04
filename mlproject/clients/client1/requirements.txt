@@ -1,6 +1,6 @@
 pandas==1.3.3
 sklearn
-sqlalchemy
+sqlalchemy<2.0
 pymssql
 xlrd
 simplejson

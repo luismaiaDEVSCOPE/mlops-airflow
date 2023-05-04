@@ -3,6 +3,8 @@ USER root
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# python3 instead of python3.10
+
 RUN apt-get update
 RUN apt-get -y install \
     python3.10 \

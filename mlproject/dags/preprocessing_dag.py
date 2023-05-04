@@ -12,8 +12,9 @@ from airflow.providers.papermill.operators.papermill import PapermillOperator
 from airflow.operators.python_operator import PythonVirtualenvOperator, PythonOperator
 # from airflow.operators.dummy_operator import DummyOperator
 # from airflow.operators.bash_operator import BashOperator
-from airflow.decorators import dag #, task
+from airflow.decorators import dag , task
 from airflow.sensors.python import PythonSensor
+from airflow.operators.empty import EmptyOperator
 
 # from sqlalchemy import create_engine
 # from sqlalchemy.engine import URL
@@ -88,6 +89,27 @@ def preprocess_worflow() :
         # mlflow.sklearn.log_model(clf, RUN_NAME)
         print("yay")
 
+    @task()
+    def db_check() :
+        print("yay 1")
+        # from airflow.hooks.base_hook import BaseHook
+        # conn = BaseHook.get_connection("test_con")
+
+        # print(type(conn)) #.get_uri()
+
+
+
+        # driver = "ODBC Driver 17 for SQL Server"
+        # if driver != "" : db_url = f"{db_url}?driver={driver.replace(' ', '+')}"
+
+        # import sqlalchemy
+
+        # engine = sqlalchemy.create_engine(db_url)
+        # statement = "SELECT TOP (10) * FROM [dbo].[Table1];"
+
+        # with engine.connect() as conn :
+        #     print(conn.execute(sqlalchemy.text(statement)))
+  
 
     # is_updated = check_data_is_updated()
     def task_run_notebook(filepath: str) :
@@ -130,8 +152,13 @@ def preprocess_worflow() :
 
     # testing connection = host.docker.internal:1434 ou host.docker.internal:1433
 
-    [t3, t4] >> t5 >> t6
+
+
+    EmptyOperator(task_id="first") >> db_check() >> [t1, t2] 
     t2 >> t3
     t1 >> t4
+    [t3, t4] >> t5 >> t6 >> EmptyOperator(task_id="last")
 
-preprocess_worflow()
+   
+
+# preprocess_worflow()
