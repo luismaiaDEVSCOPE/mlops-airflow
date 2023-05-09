@@ -8,7 +8,6 @@ import airflow.providers.papermill.operators.papermill as afl_pml
 
 def task_run_notebook(filepath: str) :
     assert os.path.exists(filepath)
-
     location, name = os.path.split(filepath)
 
     return afl_pml.PapermillOperator(
@@ -40,7 +39,7 @@ def requirments_as_list(requirements_path: str) :
 
 
 # TODO: check apache-airflow-providers-common-sql and the examples
-def sql_to_pandas(statement: str, db_url: str) :
+def sql_to_pandas(statement: str, db_url: str) -> pd.DataFrame :
     engine = sqlalchemy.create_engine(db_url)
     with engine.connect() as conn :
 
@@ -52,4 +51,7 @@ def sql_to_pandas(statement: str, db_url: str) :
         # df.columns = result.keys()
 
         # TODO: Check for memory limitations
-        yield pd.DataFrame(result.fetchall(), columns=result.keys()) # Yield instead of return
+        result_frame = pd.DataFrame =\
+            pd.DataFrame(result.fetchall(), columns=result.keys()) # Yield instead of return
+        
+    return result_frame
