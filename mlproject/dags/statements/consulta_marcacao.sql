@@ -1,7 +1,4 @@
--- USE [MyDb]
--- GO
-
-SELECT TOP(10) 
+SELECT
     [UtenteSkey], [EspecialidadeSKey], [EstruturaOrganicaSKey], [MedicoSKey],
     [CodEstadoMarcação], [Estado Marcação], [Nº Sequencial], [Data Marcação Consulta], [Data Consulta], [Hora Consulta],
     [HoraId], [Data Registo Falta], [Data Desmarcação Consulta], [CodMotivo], [Motivo Desmarcação], 

@@ -9,10 +9,11 @@ SELECT
     [Centro Custo], [Via CTH], [TMRG], [Ref. P1]
 FROM [dbo].[Consulta] 
 WHERE 
-    "Data Consulta" >= 1/1/2021
-    -- NUMS: List of N_Sequencial of the appoitments for ConsultaMarcação
-    AND [Nº Sequencial] IN (NUMS)
-    AND [EspecialidadeSKey] IN (ESPECIALIDADES_TO_CONSIDER) 
-    AND [Tipo Vaga] IS 'Primeira' 
-    AND [Tipo Consulta] IS 'Consulta Médica'
-; 
+    -- DATEDIFF(day, [Data Consulta], CAST( GETDATE() AS Date )) <= 30
+	DATEDIFF(%s, [Data Consulta], CAST('%s' as date)) <= %d
+    AND [Nº Sequencial] IN (%s)
+    AND [EspecialidadeSKey] IN (%s) 
+    AND [Tipo Vaga] = 'Primeira' 
+    AND [Tipo Consulta] = 'Consulta Médica'
+    -- AND [Data Consulta] > CAST('01/01/2023' as date)
+;

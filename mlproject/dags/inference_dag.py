@@ -53,157 +53,163 @@ args = {
     )
 
 def main_worflow() :
+    import utils
+    SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 
     @task
-    def get_data_from_consulta_marcacao_table(conn_str) :
-        pass
+    def get_data_from_consulta_marcacao_table(engine) :
+        import utils
+
+        path = os.path.join(SCRIPT_PATH, 
+            "statements/consulta_marcacao.sql")
+
+        statement = ""
+        with open(path, "r") as f :
+            statement = f.read()
+
+        path = os.path.join(SCRIPT_PATH, 
+            "statements/esp_keys.sql")
+        
+        esp_query_str = ""
+        with  open(path, "r") as f :
+            esp_query_str = f.read()
+
+        statement = statement % ("day", "01/24/2023", 7, esp_query_str)
+        # print(statement)
+
+        return utils.sql_to_pandas(statement, engine)
+
 
     @task
-    def get_data_from_consulta_table(conn_str) :
-        pass
+    def get_data_from_consulta_table(engine, con_marc) :
+        path = os.path.join(SCRIPT_PATH, 
+            "statements/consulta.sql")
+
+        statement = ""
+        with open(path, "r") as f :
+            statement = f.read()
+
+        path = os.path.join(SCRIPT_PATH, 
+            "statements/esp_keys.sql")
+        
+        esp_query_str = ""
+        with  open(path, "r") as f :
+            esp_query_str = f.read()
+
+        nums = str( set( con_marc['Nº Sequencial'].copy().astype(int) ) )\
+            .replace('{', '').replace('}', '')
+        # print(nums)
+
+        statement = statement % ("day", "01/24/2023", 30, nums, esp_query_str)
+        # print(statement)
+
+        return utils.sql_to_pandas(statement, engine)
+
 
     @task
-    def get_data_from_utente_table(conn_str) :
+    def get_data_from_utente_table(engine, con_marc) :
+        path = os.path.join(SCRIPT_PATH, 
+            "statements/utente.sql")
+
+        statement = ""
+        with open(path, "r") as f :
+            statement = f.read()
+
+        nums = str( set( con_marc['Nº Sequencial'].copy().astype(int) ) )\
+            .replace('{', '').replace('}', '')
+        # print(nums)
+
+        statement = statement % (nums)
+        # print(statement)
+
+        return utils.sql_to_pandas(statement, engine)
+    
+
+    @task()
+    def get_unidade_saude_table(engine) :
         pass
 
     @task()
-    def get_unidade_saude_table(conn_str) :
+    def get_porveniencia_table(engine) :
         pass
 
     @task()
-    def get_porveniencia_table(conn_str) :
+    def get_especialidade_table(engine) :
         pass
 
     @task()
-    def get_especialidade_table(conn_str) :
+    def get_unidade_destino_table(engine) :
         pass
 
     @task()
-    def get_unidade_destino_table(conn_str) :
+    def get_geography_table(engine) :
         pass
 
-    @task()
-    def get_geography_table(conn_str) :
-        pass
 
     @task()
-    def generate_coordenates() :
+    def get_coords() :
         from geo import geo_script
-        geo_script()
-        return True
+        return geo_script()
 
 
     @task()
-    def load_preds_to_db(conn_str) :
-        # mlflow.sklearn.log_model(clf, RUN_NAME)
+    def load_preds_to_db(engine) :
         print("loading to database")
         return True
 
 
     @task()
-    def test_db_conn() :
+    def get_db_engine(connection_name, dialect, driver) :
+        return utils.get_db_engine(
+            connection_name=connection_name, 
+            dialect=dialect, 
+            driver=driver)
 
-        def get_db_url(connection_name: str, dialect=None, driver=None) :
-            from airflow.hooks.base import BaseHook
-            conn = BaseHook.get_connection(connection_name)
-            base_string = "%s://%s:%s@%s:%s/%s"
-
-            # values to build the connection string
-            # note: sometimes airflow may not have the ideal dialect
-            values_list = [conn.conn_type if dialect is None else dialect, conn.login, 
-                           conn.password, conn.host, conn.port, conn.schema]
-
-            # A specific driver may be required. If so add both the value and text to the connection string
-            if not driver is None :
-                base_string += "?driver=%s"
-                values_list.append(
-                    driver if " " in driver else driver.replace(' ', '+'))
-
-            return base_string % tuple(values_list)
-
-
-        db_url = get_db_url(
-            connection_name="test_con", 
-            dialect="mssql+pyodbc", 
-            driver="ODBC+Driver+17+for+SQL+Server")
-
-        import sqlalchemy
-        import pandas as pd
-
-        engine = sqlalchemy.create_engine(db_url)
-        statement = "SELECT TOP (10) * FROM [dbo].[Table1];"
-
-        with engine.connect() as conn :
-            result = conn.execute(statement)
-            yield pd.DataFrame(result.fetchall(), columns=result.keys())
-  
-
-    # is_updated = check_data_is_updated()
-    def task_run_notebook(filepath: str) :
-        # import papermill as pm
-        assert os.path.exists(filepath)
-        location, name = os.path.split(filepath)
-
-        return PapermillOperator(
-            task_id=f"run_{name}",
-            input_nb=filepath, 
-            output_nb=os.path.join(location, "out_folder", name),
-            # parameters={"msgs": "Ran from Airflow at {{ execution_date }}!"},
-        )
 
     # t1 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/data_split.ipynb")
     # t2 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/geo.ipynb")
-    t2 = PythonSensor(
-        task_id="geo_task", 
-        python_callable=generate_coordenates
-    )
 
-    t3 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
+    t3 = utils.task_run_notebook(filepath="/opt/airflow/dags/notebooks/utente.ipynb")
 
-    t4 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/main_data_prep.ipynb")
+    t4 = utils.task_run_notebook(filepath="/opt/airflow/dags/notebooks/main_data_prep.ipynb")
 
-    t5 = task_run_notebook(filepath="/opt/airflow/dags/notebooks/inference_4_prod.ipynb")
-
+    t5 = utils.task_run_notebook(filepath="/opt/airflow/dags/notebooks/inference_4_prod.ipynb")
 
     # t6 = PythonSensor(
     #     task_id="save_task", 
     #     python_callable=load_preds_to_db
     # )
 
-    # testing connection = host.docker.internal:1434 ou host.docker.internal:1433
+    # EmptyOperator(task_id="first")
+    # EmptyOperator(task_id="first") 
 
+    engine = get_db_engine(connection_name="test_con", 
+            dialect="mssql+pyodbc", 
+            driver="ODBC+Driver+17+for+SQL+Server")
 
-    # EmptyOperator(task_id="first") >> db_check() >> [t1, t2] 
-    #EmptyOperator(task_id="first") >> test_db_conn() 
+    consulta_marcacao = get_data_from_consulta_marcacao_table(engine)
+    consulta = get_data_from_consulta_table(engine, consulta_marcacao)
+    utente = get_data_from_utente_table(engine, consulta_marcacao)
+    
 
-    """
-    test_db_conn() >> [# [get_data_from_consulta_table(), get_data_from_utente_table()] <<  get_data_from_consulta_marcacao_table(),
-                  get_geography_table() >> t2, 
-                  get_especialidade_table(),
-                  get_porveniencia_table(),
-                  get_unidade_destino_table(),
-                  get_unidade_saude_table()] >> t4
-    """
+    f4 = get_geography_table(engine)
+    f5 = get_especialidade_table(engine)
+    f6 = get_porveniencia_table(engine)
+    f7 = get_unidade_destino_table(engine)
+    f8 = get_unidade_saude_table(engine)
 
-    conn_str = test_db_conn()
+    f9 = load_preds_to_db(engine)
 
-    f1 = get_data_from_consulta_table(conn_str)
-    f2 = get_data_from_utente_table(conn_str)
-    f3 = get_data_from_consulta_marcacao_table(conn_str)
-
-    f4 = get_geography_table(conn_str)
-    f5 = get_especialidade_table(conn_str)
-    f6 = get_porveniencia_table(conn_str)
-    f7 = get_unidade_destino_table(conn_str)
-    f8 = get_unidade_saude_table(conn_str)
-
-    f9 = load_preds_to_db(conn_str)
+    # get_coords() - geo - precisa de GEO
+    # t3 - utentes - precisa de UTENTES e do geo_cords (resultado de geo_script)
+    # t4 - main_data_prep - precisa CONSULTA CONSULTA_MARC (UNISAU e ESP)
+    # t5 - infrecence prod - precisa utentes e consultas (resultado t4 e resultado t3)
 
     f4 >> t2 >> t3
+    f2 >> t3
 
-    # t2 >> t3
     [f1, f2, f3, f5, f6, f7, f8] >> t4
-    [t3, t4] >> t5 >> f9 # >> EmptyOperator(task_id="last")
+    [t3, t4] >> t5 >> f9
 
-   
+
 main_worflow()
