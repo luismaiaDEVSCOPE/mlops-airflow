@@ -1,8 +1,0 @@
-numpy
-pandas
-geopy
-imblearn
-lightgbm
-xgboost
-category_encoders
-hyperopt
