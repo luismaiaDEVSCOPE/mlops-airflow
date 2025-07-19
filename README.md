@@ -1,154 +1,346 @@
-## Airflow in Docker
-Before you begin
+# MLOps Airflow Pipeline
 
-Follow these steps to install the necessary tools.
+A comprehensive MLOps platform built with Apache Airflow for orchestrating machine learning workflows, including data preprocessing, model training, inference, and monitoring.
 
-Install Docker Community Edition (CE) on your workstation. Depending on the OS, you may need to configure your Docker instance to use 4.00 GB of memory for all containers to run properly. Please refer to the Resources section if using Docker for Windows or Docker for Mac for more information.
+## 📋 Table of Contents
 
-Install Docker Compose v1.29.1 and newer on your workstation.
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Running the Pipeline](#running-the-pipeline)
+- [DAGs Overview](#dags-overview)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
-Older versions of docker-compose do not support all the features required by docker-compose.yaml file, so double check that your version meets the minimum version requirements.
+## 🎯 Overview
 
-docker-compose.yaml
-To deploy Airflow on Docker Compose, you should fetch docker-compose.yaml.
+This project provides a complete MLOps solution using Apache Airflow for:
+- **Data Ingestion**: Automated data extraction from SQL databases
+- **Data Preprocessing**: Feature engineering and data transformation pipelines
+- **Model Training**: Automated model training with MLflow integration
+- **Model Inference**: Production inference pipelines
+- **Monitoring**: Model performance and data drift monitoring
 
-docker-compose.yaml
-To deploy Airflow on Docker Compose, you should fetch docker-compose.yaml.
+## ✨ Features
 
-curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.2.0/docker-compose.yaml'
-This file contains several service definitions:
+- 🐳 **Dockerized Environment**: Complete containerized setup with Docker Compose
+- 🔄 **Automated Workflows**: End-to-end ML pipelines with dependency management
+- 📊 **MLflow Integration**: Model versioning and experiment tracking
+- 📓 **Notebook Execution**: Papermill integration for parameterized notebook execution
+- 🗄️ **Database Connectivity**: Support for MSSQL and other databases
+- 📈 **Monitoring**: Built-in monitoring with Flower and custom metrics
+- 🔧 **Flexible Configuration**: Environment-based configuration management
 
-airflow-scheduler - The scheduler monitors all tasks and DAGs, then triggers the task instances once their dependencies are complete.
+## 🏗️ Architecture
 
-airflow-webserver - The webserver is available at http://localhost:8080.
+The platform consists of the following components:
 
-airflow-worker - The worker that executes the tasks given by the scheduler.
+- **Airflow Webserver**: Web UI for managing workflows (Port 8080)
+- **Airflow Scheduler**: Orchestrates task execution
+- **Airflow Worker**: Executes tasks using CeleryExecutor
+- **Flower**: Monitoring dashboard for Celery workers (Port 5555)
+- **PostgreSQL**: Metadata database for Airflow
+- **Redis**: Message broker for task distribution
+- **MLflow**: Model registry and experiment tracking
 
-airflow-init - The initialization service.
+## 🔧 Prerequisites
 
-flower - The flower app for monitoring the environment. It is available at http://localhost:5555.
+Before getting started, ensure you have the following installed:
 
-postgres - The database.
+- **Docker**: Community Edition (CE) with at least 4GB memory allocation
+- **Docker Compose**: Version 1.29.1 or newer
+- **Git**: For version control
+- **Python 3.8+**: For local development (optional)
 
-redis - The redis - broker that forwards messages from scheduler to worker.
+### System Requirements
 
-All these services allow you to run Airflow with CeleryExecutor. For more information, see Architecture Overview.
+- **Memory**: Minimum 8GB RAM (4GB allocated to Docker)
+- **Storage**: At least 10GB free disk space
+- **OS**: Windows 10/11, macOS, or Linux
 
-Some directories in the container are mounted, which means that their contents are synchronized between your computer and the container.
+## 🚀 Quick Start
 
-./dags - you can put your DAG files here.
+### 1. Clone the Repository
 
-./logs - contains logs from task execution and scheduler.
+```bash
+git clone <repository-url>
+cd mlops-airflow
+```
 
-./plugins - you can put your custom plugins here.
+### 2. Set Up Environment
 
-This file uses the latest Airflow image (apache/airflow). If you need to install a new Python library or system library, you can build your image.
+Create the required directories and environment file:
 
-Using custom images
-When you want to run Airflow locally, you might want to use an extended image, containing some additional dependencies - for example you might add new python packages, or upgrade airflow providers to a later version. This can be done very easily by placing a custom Dockerfile alongside your docker-compose.yaml. Then you can use docker-compose build command to build your image (you need to do it only once). You can also add the --build flag to your docker-compose commands to rebuild the images on-the-fly when you run other docker-compose commands.
+```bash
+# Create necessary directories
+mkdir -p ./logs ./plugins
 
-Examples of how you can extend the image with custom providers, python packages, apt packages and more can be found in Building the image.
+# Create .env file (Windows)
+echo AIRFLOW_UID=50000 > .env
 
-Initializing Environment
-Before starting Airflow for the first time, You need to prepare your environment, i.e. create the necessary files, directories and initialize the database.
-
-Setting the right Airflow user
-On Linux, the quick-start needs to know your host user id and needs to have group id set to 0. Otherwise the files created in dags, logs and plugins will be created with root user. You have to make sure to configure them for the docker-compose:
-
+# For Linux/macOS users
 mkdir -p ./dags ./logs ./plugins
-echo -e "AIRFLOW_UID=$(id -u)" > .env
-See Docker Compose environment variables
+echo "AIRFLOW_UID=$(id -u)" > .env
+```
 
-For other operating systems, you will get warning that AIRFLOW_UID is not set, but you can ignore it. You can also manually create the .env file in the same folder your docker-compose.yaml is placed with this content to get rid of the warning:
+### 3. Build and Initialize
 
-AIRFLOW_UID=50000
-Initialize the database
-On all operating systems, you need to run database migrations and create the first user account. To do it, run.
+```bash
+# Navigate to docker directory
+cd docker
 
+# Build custom images
+docker-compose build
+
+# Initialize the database
 docker-compose up airflow-init
-After initialization is complete, you should see a message like below.
+```
 
-airflow-init_1       | Upgrades done
-airflow-init_1       | Admin user airflow created
-airflow-init_1       | 2.2.0
-start_airflow-init_1 exited with code 0
-The account created has the login airflow and the password airflow.
+### 4. Start the Platform
 
-Cleaning-up the environment
-The docker-compose we prepare is a "Quick-start" one. It is not intended to be used in production and it has a number of caveats - one of them being that the best way to recover from any problem is to clean it up and restart from the scratch.
+```bash
+# Start all services
+docker-compose up -d
 
-The best way to do it is to:
+# Check container health
+docker-compose ps
+```
 
-Run docker-compose down --volumes --remove-orphans command in the directory you downloaded the docker-compose.yaml file
+### 5. Access the Web Interface
 
-remove the whole directory where you downloaded the docker-compose.yaml file rm -rf '<DIRECTORY>'
+- **Airflow UI**: http://localhost:8080
+- **Flower Dashboard**: http://localhost:5555
+- **Default Credentials**: `airflow` / `airflow`
 
-re-download the docker-compose.yaml file
+## 📁 Project Structure
 
-re-start following the instructions from the very beginning in this guide
+```
+mlops-airflow/
+├── artifacts/                 # Generated artifacts and outputs
+├── docker/                   # Docker configuration
+│   ├── docker-compose.yml    # Main compose file
+│   ├── Dockerfile            # Custom Airflow image
+│   ├── requirements.txt      # Python dependencies
+│   ├── airflow_worker/       # Worker-specific configuration
+│   ├── config/               # Airflow configuration files
+│   └── mlflow_dockerfile/    # MLflow service configuration
+├── mlproject/                # Main project code
+│   ├── clients/              # Client-specific implementations
+│   ├── dags/                 # Airflow DAGs
+│   │   ├── agent_rigor.py    # Data quality validation
+│   │   ├── geo.py            # Geography processing
+│   │   ├── inference_dag.py  # Model inference pipeline
+│   │   ├── populate.py       # Data population
+│   │   ├── notebooks/        # Jupyter notebooks for processing
+│   │   └── statements/       # SQL statements and queries
+│   └── engine/               # Core engine modules
+│       ├── config.py         # Configuration management
+│       ├── helpers/          # Helper utilities
+│       └── scripts/          # Execution scripts
+├── prj_requirements/         # Project requirements
+├── tables/                   # Database table definitions
+└── README.md                # This file
+```
 
-Running Airflow
-Now you can start all services:
+## ⚙️ Configuration
 
-    docker-compose up
+### Environment Variables
 
-In the second terminal you can check the condition of the containers and make sure that no containers are in unhealthy condition:
+Key configuration options in your `.env` file:
 
-    $ docker ps
-    CONTAINER ID   IMAGE                  COMMAND                      CREATED          STATUS                        PORTS                              NAMES
-    247ebe6cf87a   apache/airflow:2.2.0   "/usr/bin/dumb-init …"   3     minutes ago    Up 3 minutes (healthy)    8080/    tcp                           compose_airflow-worker_1
-    ed9b09fc84b1   apache/airflow:2.2.0   "/usr/bin/dumb-init …"   3     minutes ago    Up 3 minutes (healthy)    8080/    tcp                           compose_airflow-scheduler_1
-    65ac1da2c219   apache/airflow:2.2.0   "/usr/bin/dumb-init …"   3     minutes ago    Up 3 minutes (healthy)    0.0.0.0:5555->5555/tcp,     8080/tcp   compose_flower_1
-    7cb1fb603a98   apache/airflow:2.2.0   "/usr/bin/dumb-init …"   3     minutes ago    Up 3 minutes (healthy)    0.0.0.0:8080->8080/    tcp             compose_airflow-webserver_1
-    74f3bbe506eb   postgres:13            "docker-entrypoint.s…"   18     minutes ago   Up 17 minutes (healthy)   5432/    tcp                           compose_postgres_1
-    0bd6576d23cb   redis:latest           "docker-entrypoint.s…"   10     hours ago     Up 17 minutes (healthy)   0.0.0.0:6379->6379/    tcp             compose_redis_1
+```bash
+# Airflow Configuration
+AIRFLOW_UID=50000
+AIRFLOW_IMAGE_NAME=apache/airflow:2.5.1
 
-Accessing the environment
-After starting Airflow, you can interact with it in 3 ways;
+# Database Configuration
+POSTGRES_USER=airflow
+POSTGRES_PASSWORD=airflow
+POSTGRES_DB=airflow
 
-by running CLI commands.
+# MLflow Configuration
+MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+MLFLOW_DEFAULT_ARTIFACT_ROOT=./mlruns
+```
 
-via a browser using the web interface.
+### Custom Dependencies
 
-using the REST API.
+The project includes machine learning and data processing libraries:
 
-Running the CLI commands
-You can also run CLI commands, but you have to do it in one of the defined airflow-* services. For example, to run airflow info, run the following command:
+- **Data Processing**: pandas, numpy, xlrd, unidecode
+- **ML Libraries**: lightgbm, xgboost, scikit-learn, imblearn
+- **Database**: pymssql for SQL Server connectivity
+- **Notebook Execution**: papermill, apache-airflow-providers-papermill
+- **Geospatial**: geopy for location processing
+- **Optimization**: hyperopt for hyperparameter tuning
 
-docker-compose run airflow-worker airflow info
-If you have Linux or Mac OS, you can make your work easier and download a optional wrapper scripts that will allow you to run commands with a simpler command.
+## 🏃‍♂️ Running the Pipeline
 
-    curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.2.0/airflow.sh'
-    chmod +x airflow.sh
+### Starting the Platform
 
-Now you can run commands easier.
+```bash
+cd docker
+docker-compose up -d
+```
 
-    ./airflow.sh info
+### Accessing Services
 
-You can also use bash as parameter to enter interactive bash shell in the container or python to enter python container.
+1. **Airflow Web UI**: Navigate to http://localhost:8080
+2. **Login**: Use `airflow` / `airflow`
+3. **Enable DAGs**: Toggle the DAGs you want to run
+4. **Monitor**: Use the Graph View to monitor execution
 
-    ./airflow.sh bash
-    ./airflow.sh python
+### CLI Operations
 
-Accessing the web interface
-Once the cluster has started up, you can log in to the web interface and try to run some tasks.
+Execute Airflow commands:
 
-The webserver is available at: http://localhost:8080. The default account has the login airflow and the password airflow.
+```bash
+# Run airflow commands
+docker-compose exec airflow-worker airflow info
 
-Sending requests to the REST API
-Basic username password authentication is currently supported for the REST API, which means you can use common tools to send requests to the API.
+# Access interactive shell
+docker-compose exec airflow-worker bash
 
-The webserver is available at: http://localhost:8080. The default account has the login airflow and the password airflow.
+# View logs
+docker-compose logs airflow-scheduler
+```
 
-Here is a sample curl command, which sends a request to retrieve a pool list:
+## 📊 DAGs Overview
 
-    ENDPOINT_URL="http://localhost:8080/"
-    curl -X GET  \
-        --user "airflow:airflow" \
-        "${ENDPOINT_URL}/api/v1/pools"´
+### Available Workflows
 
-## Cleaning up
-To stop and delete containers, delete volumes with database data and download images, run:
+1. **`agent_rigor.py`**: Data quality validation and cleansing
+2. **`geo.py`**: Geospatial data processing and enrichment
+3. **`inference_dag.py`**: Model inference and prediction pipeline
+4. **`populate.py`**: Database population and data ingestion
 
+### Notebook Execution
 
-    docker-compose down --volumes --rmi all
+The platform executes Jupyter notebooks as part of the workflow:
+
+- **`data_split.ipynb`**: Training/testing data splitting
+- **`main_data_prep.ipynb`**: Primary data preprocessing
+- **`inference_4_prod.ipynb`**: Production inference pipeline
+- **`geo.ipynb`**: Geographic data processing
+- **`utente.ipynb`**: User-specific data processing
+
+## 🛠️ Development
+
+### Adding New DAGs
+
+1. Create your DAG file in `mlproject/dags/`
+2. Follow Airflow best practices
+3. Use the provided helper functions from `utils.py`
+4. Test locally before deployment
+
+### Extending Dependencies
+
+To add new Python packages:
+
+1. Update `docker/requirements.txt`
+2. Rebuild the Docker image:
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+
+### Database Connections
+
+Configure database connections in the Airflow UI:
+- Go to Admin → Connections
+- Add your database connection details
+- Use the connection ID in your DAGs
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**Services won't start:**
+```bash
+# Check logs
+docker-compose logs
+
+# Restart services
+docker-compose restart
+```
+
+**Permission issues (Linux/macOS):**
+```bash
+# Fix ownership
+sudo chown -R $(id -u):$(id -g) ./logs ./plugins
+```
+
+**Out of memory:**
+- Increase Docker memory allocation to 4GB+
+- Monitor container resource usage
+
+**Database connection errors:**
+- Verify connection settings in Airflow UI
+- Check network connectivity
+- Validate credentials
+
+### Health Checks
+
+```bash
+# Check all container status
+docker-compose ps
+
+# View specific service logs
+docker-compose logs [service-name]
+
+# Test Airflow scheduler
+docker-compose exec airflow-scheduler airflow scheduler --help
+```
+
+## 🧹 Cleaning Up
+
+### Stop Services
+```bash
+docker-compose down
+```
+
+### Complete Cleanup (removes all data)
+```bash
+# Stop and remove everything
+docker-compose down --volumes --rmi all
+
+# Remove project directory (if needed)
+# rm -rf /path/to/mlops-airflow
+```
+
+### Restart from Scratch
+```bash
+# Clean up
+docker-compose down --volumes --remove-orphans
+
+# Remove images
+docker-compose down --rmi all
+
+# Start fresh
+docker-compose up airflow-init
+docker-compose up -d
+```
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -am 'Add your feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Submit a Pull Request
+
+## 📚 Additional Resources
+
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Papermill Documentation](https://papermill.readthedocs.io/)
+
+---
+
+**Note**: This setup is optimized for development and testing. For production deployment, additional security configurations and resource optimizations are recommended.
