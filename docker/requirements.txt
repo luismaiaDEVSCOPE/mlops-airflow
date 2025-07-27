@@ -15,4 +15,4 @@ category_encoders
 hyperopt
 scikit-learn
 mlflow
-sqlalchemy<2.0
+sqlalchemy>=2.0.0

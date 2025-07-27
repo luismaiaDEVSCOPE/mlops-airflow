@@ -2,7 +2,7 @@ def get_airflow_connection(conn_name:str):
     connection = dict()
     # return 'mssql://tests_user:9wy82QQMGnVHDFPc@host.docker.internal/irissql?&driver=ODBC+Driver+17+for+SQL+Server'
 
-    from airflow.hooks.base_hook import BaseHook
+    from airflow.hooks.base import BaseHook
     conn = BaseHook.get_connection(conn_name)
 
     host = conn.host

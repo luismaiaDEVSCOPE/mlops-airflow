@@ -1,0 +1,41 @@
+name: CI/CD MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - aula3
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+      - name: Instalar dependências
+        run: pip install -r docker/requirements.txt
+      - name: Lint
+        run: flake8 src/ api/
+      - name: Testes unitários
+        run: pytest src/
+
+  train:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+      - name: Instalar dependências
+        run: pip install -r docker/requirements.txt
+      - name: Treino e tracking
+        run: python src/train_model.py
+
+  build:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+      - name: Construir imagem Docker
+        run: docker build -t mlops-api:latest .
