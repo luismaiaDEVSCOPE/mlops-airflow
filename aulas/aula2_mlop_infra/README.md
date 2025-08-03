@@ -1,6 +1,6 @@
 
 
-# Lesson 2: MLOps & Infrastructure (Docker-first Practical)
+# Class II: Deep-dive into MLOps & Infrastructure
 
 ## Goal
 Get hands-on with MLOps infrastructure by running MLflow and a model-serving API directly from Docker containers. Learn experiment tracking, model registry, and how to use your trained model via an API.

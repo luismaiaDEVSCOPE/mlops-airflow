@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.0.1
+    command: mlflow ui --backend-store-uri /data/mlflow --default-artifact-root /data/mlflow/artifacts --host 0.0.0.0
+    container_name: mlflow_server
+    ports:
+        - "5000:5000"
+    volumes:
+        - ../artifacts:/data
+    restart: always
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow

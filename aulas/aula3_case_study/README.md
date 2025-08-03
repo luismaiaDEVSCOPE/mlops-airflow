@@ -1,5 +1,5 @@
 
-# Lesson 3: Practical Case-Study (Building the MLOps Cycle)
+# Class III: Practical Use-Case (Building the MLOps Cycle)
 
 ## Goal
 Integrate the components from Lesson 2 into an automated CI/CD pipeline, focusing on local process automation.
