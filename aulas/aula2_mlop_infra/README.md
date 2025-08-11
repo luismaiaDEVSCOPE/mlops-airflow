@@ -5,26 +5,111 @@
 ## Goal
 Get hands-on with MLOps infrastructure by running MLflow and a model-serving API directly from Docker containers. Learn experiment tracking, model registry, and how to use your trained model via an API.
 
-## Lesson Structure
+## Class Structure
 
-### 1. Infrastructure Management & Quick Demo (20 min)
-- Quick intro to MLOps infrastructure and containerization.
-- Show how to run MLflow and a FastAPI/Flask API from Docker containers.
-- Demo: Start both containers, access MLflow UI and API endpoint locally.
+### Prerequisites
+Students only need:
+- **Docker** and **Docker Compose** installed
+- A web browser
+- No Python, MLflow, or other tools needed locally!
 
-### 2. Experiment Tracking (30 min)
-- **Concept:** Why it's important to log parameters and metrics for reproducibility.
-- **Hands-on:** Run a training script (from notebook or Python file) that logs to MLflow (served from Docker). Explore experiments, metrics, and artifacts in the MLflow UI.
+### Quick Start
+1. Clone the repository
+2. Navigate to `aulas/aula2_mlop_infra/`
+3. Run: `docker-compose up -d`
+4. **Validate everything is working**:
+   ```bash
+   # Option 1: Python script
+   python validate_environment.py
+   
+   # Option 2: PowerShell (Windows)
+   .\validate_environment.ps1
+   
+   # Option 3: Manual check
+   docker-compose ps
+   ```
+5. Open your browser to:
+   - **JupyterLab**: http://localhost:8888 (main workspace)
+   - **MLflow UI**: http://localhost:5000 (experiment tracking)
+   - **API**: http://localhost:8080 (model serving)
 
-### 3. Model Registry (20 min)
-- **Concept:** Why a centralized and versioned model registry matters.
-- **Hands-on:** Register the best model in the MLflow Model Registry and promote it between "Staging" and "Production" in the UI (served from Docker).
+### 1. Infrastructure Management & Quick Demo (15 min)
+- Show the containerized setup: JupyterLab + MLflow + API
+- Demonstrate accessing all three services from the browser
+- Explain the benefits: consistent environment, no local setup needed
 
-### 4. Wrap-up: Using the API with Your Trained Model (20 min)
-- Use the running API container to make predictions with your trained model.
-- Test the endpoint with Postman/curl and discuss how this fits into a real MLOps workflow.
-- Recap: We have experiment tracking, model registry, and a working API—all running locally in containers.
-- Tease the next lesson: "Next, we'll automate the whole process!"
+### 2. Hands-on in JupyterLab (50 min)
+Students work through the notebook (`tracking_mlflow.ipynb`) which covers:
+
+#### Experiment Tracking (25 min)
+- **Concept**: Why tracking parameters and metrics matters for reproducibility
+- **Hands-on**: Train models in JupyterLab, see experiments in MLflow UI
+- **Practice**: Try different hyperparameters, compare results
+
+#### Model Registry (25 min)
+- **Concept**: Centralized, versioned model storage and lifecycle management
+- **Hands-on**: Register models, promote between Staging/Production stages
+- **Practice**: Version management and model governance
+
+### 3. API Testing & Wrap-up (25 min)
+- Test the containerized API directly from JupyterLab
+- Make predictions with the registered model
+- Discuss the complete MLOps workflow: Track → Register → Serve
+- Preview next class: "We'll automate this entire process!"
+
+## 🛠️ Troubleshooting Guide
+
+### Common Issues & Solutions
+
+**MLflow UI not loading?**
+```bash
+# Check if container is running
+docker-compose ps
+
+# Check logs
+docker-compose logs mlflow
+```
+
+**JupyterLab connection issues?**
+```bash
+# Get the access token
+docker-compose logs jupyter
+
+# Look for: http://127.0.0.1:8888/lab?token=XXXXX
+```
+
+**Model Registry errors in notebook?**
+- Make sure you run cells in order
+- Check MLflow server connectivity first
+- Verify all containers are running: `docker-compose ps`
+- Look for error messages in the notebook output
+
+**API connection failed?**
+```bash
+# Test API directly
+curl http://localhost:8080/health
+
+# Check API logs
+docker-compose logs api
+```
+
+### Container Management Commands
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs for specific service
+docker-compose logs [mlflow|jupyter|api]
+
+# Restart a specific service
+docker-compose restart [service-name]
+
+# Check container status
+docker-compose ps
+```
 
 ---
 

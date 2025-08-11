@@ -31,3 +31,6 @@ logs
 
 mlproject/datasets
 mlproject/dags/notebooks/out_folder
+*checkpoint.ipynb
+**/artifacts
+**/db
