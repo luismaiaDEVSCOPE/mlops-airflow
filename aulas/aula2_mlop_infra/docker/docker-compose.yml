@@ -1,7 +1,6 @@
-version: '3.8'
 services:
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.0.1
+    image: ghcr.io/mlflow/mlflow
     container_name: mlflow_server
     ports:
         - "5000:5000"
@@ -13,7 +12,7 @@ services:
     user: "0:0"  # Run as root
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow/db/mlflow.db
-      #- MLFLOW_DEFAULT_ARTIFACT_ROOT=/artifacts
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/artifacts
     command: ["bash", "/init-mlflow.sh"]
 
   jupyter:
@@ -35,8 +34,11 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    container_name: api_service
     ports:
       - "8080:8080"
+    volumes:
+      - ../artifacts:/artifacts     # Mount artifacts for model loading
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:

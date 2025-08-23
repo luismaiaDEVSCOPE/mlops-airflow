@@ -95,20 +95,20 @@ echo "AIRFLOW_UID=$(id -u)" > .env
 cd docker
 
 # Build custom images
-docker-compose build
+docker compose build
 
 # Initialize the database
-docker-compose up airflow-init
+docker compose up airflow-init
 ```
 
 ### 4. Start the Platform
 
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # Check container health
-docker-compose ps
+docker compose ps
 ```
 
 ### 5. Access the Web Interface
@@ -123,7 +123,7 @@ docker-compose ps
 mlops-airflow/
 ├── artifacts/                 # Generated artifacts and outputs
 ├── docker/                   # Docker configuration
-│   ├── docker-compose.yml    # Main compose file
+│   ├── docker compose.yml    # Main compose file
 │   ├── Dockerfile            # Custom Airflow image
 │   ├── requirements.txt      # Python dependencies
 │   ├── airflow_worker/       # Worker-specific configuration
@@ -185,7 +185,7 @@ The project includes machine learning and data processing libraries:
 
 ```bash
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Accessing Services
@@ -201,13 +201,13 @@ Execute Airflow commands:
 
 ```bash
 # Run airflow commands
-docker-compose exec airflow-worker airflow info
+docker compose exec airflow-worker airflow info
 
 # Access interactive shell
-docker-compose exec airflow-worker bash
+docker compose exec airflow-worker bash
 
 # View logs
-docker-compose logs airflow-scheduler
+docker compose logs airflow-scheduler
 ```
 
 ## 📊 DAGs Overview
@@ -245,8 +245,8 @@ To add new Python packages:
 1. Update `docker/requirements.txt`
 2. Rebuild the Docker image:
    ```bash
-   docker-compose build
-   docker-compose up -d
+   docker compose build
+   docker compose up -d
    ```
 
 ### Database Connections
@@ -263,10 +263,10 @@ Configure database connections in the Airflow UI:
 **Services won't start:**
 ```bash
 # Check logs
-docker-compose logs
+docker compose logs
 
 # Restart services
-docker-compose restart
+docker compose restart
 ```
 
 **Permission issues (Linux/macOS):**
@@ -288,26 +288,26 @@ sudo chown -R $(id -u):$(id -g) ./logs ./plugins
 
 ```bash
 # Check all container status
-docker-compose ps
+docker compose ps
 
 # View specific service logs
-docker-compose logs [service-name]
+docker compose logs [service-name]
 
 # Test Airflow scheduler
-docker-compose exec airflow-scheduler airflow scheduler --help
+docker compose exec airflow-scheduler airflow scheduler --help
 ```
 
 ## 🧹 Cleaning Up
 
 ### Stop Services
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### Complete Cleanup (removes all data)
 ```bash
 # Stop and remove everything
-docker-compose down --volumes --rmi all
+docker compose down --volumes --rmi all
 
 # Remove project directory (if needed)
 # rm -rf /path/to/mlops-airflow
@@ -316,14 +316,14 @@ docker-compose down --volumes --rmi all
 ### Restart from Scratch
 ```bash
 # Clean up
-docker-compose down --volumes --remove-orphans
+docker compose down --volumes --remove-orphans
 
 # Remove images
-docker-compose down --rmi all
+docker compose down --rmi all
 
 # Start fresh
-docker-compose up airflow-init
-docker-compose up -d
+docker compose up airflow-init
+docker compose up -d
 ```
 
 ## 📝 Contributing

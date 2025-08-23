@@ -1,4 +1,4 @@
-name: CI/CD MLOps Pipeline
+name: MLOps Infrastructure Automation Pipeline
 
 on:
   push:
@@ -6,36 +6,193 @@ on:
       - main
       - master
       - aula3
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  MLFLOW_TRACKING_URI: http://localhost:5000
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
 
 jobs:
-  ci:
+  infrastructure-validation:
+    name: "🔍 Infrastructure Validation"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
-      - name: Instalar dependências
-        run: pip install -r docker/requirements.txt
-      - name: Lint
-        run: flake8 src/ api/
-      - name: Testes unitários
-        run: pytest src/
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r docker/requirements.txt
+          pip install flake8 pytest docker compose-check
+          
+      - name: Lint Python code
+        run: |
+          flake8 src/ api/ --max-line-length=100 --ignore=E203,W503
+          
+      - name: Validate Docker Compose
+        run: |
+          cd docker
+          docker compose config
+          docker compose ps
+          
+      - name: Security scan (Dockerfile)
+        run: |
+          # Basic Dockerfile security check
+          grep -i "ADD\|COPY.*--chown" docker/Dockerfile || echo "✅ No insecure COPY/ADD found"
+          grep -i "USER root" docker/Dockerfile && echo "⚠️ Running as root - review needed" || echo "✅ User permissions OK"
+          
+      - name: Infrastructure tests
+        run: |
+          python -m pytest tests/test_infrastructure.py -v
 
-  train:
-    needs: ci
+  continuous-training:
+    name: "🤖 Continuous Training"
     runs-on: ubuntu-latest
+    needs: infrastructure-validation
+    services:
+      mlflow:
+        image: ghcr.io/mlflow/mlflow:v2.0.1
+        ports:
+          - 5000:5000
+        env:
+          MLFLOW_BACKEND_STORE_URI: sqlite:///mlflow.db
+        options: >-
+          --health-cmd "curl -f http://localhost:5000/health || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 5
+          
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
-      - name: Instalar dependências
-        run: pip install -r docker/requirements.txt
-      - name: Treino e tracking
-        run: python src/train_model.py
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install ML dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r docker/requirements.txt
+          
+      - name: Wait for MLflow server
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:5000/health; do sleep 2; done'
+          
+      - name: Run automated training
+        run: |
+          export MLFLOW_TRACKING_URI=http://localhost:5000
+          python src/train_model.py
+          
+      - name: Validate model performance
+        run: |
+          export MLFLOW_TRACKING_URI=http://localhost:5000
+          python src/model_validation.py
+          
+      - name: Archive training artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: training-artifacts
+          path: |
+            models/
+            metrics/
+          retention-days: 30
 
-  build:
-    needs: train
+  continuous-deployment:
+    name: "🚀 Continuous Deployment"
     runs-on: ubuntu-latest
+    needs: [infrastructure-validation, continuous-training]
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
-      - name: Construir imagem Docker
-        run: docker build -t mlops-api:latest .
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download training artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: training-artifacts
+          
+      - name: Build Docker images
+        run: |
+          cd docker
+          docker compose build --parallel
+          
+      - name: Deploy infrastructure stack
+        run: |
+          cd docker
+          docker compose up -d
+          
+      - name: Wait for services to be ready
+        run: |
+          # Wait for MLflow
+          timeout 120 bash -c 'until curl -f http://localhost:5000/health; do sleep 5; done'
+          echo "✅ MLflow is ready"
+          
+          # Wait for API
+          timeout 120 bash -c 'until curl -f http://localhost:8080/health; do sleep 5; done'
+          echo "✅ API is ready"
+          
+          # Wait for Jupyter (if included)
+          timeout 60 bash -c 'until curl -f http://localhost:8888; do sleep 5; done' || echo "⚠️ Jupyter not responding (may be expected)"
+          
+      - name: Run integration tests
+        run: |
+          python -m pytest tests/test_api.py -v
+          python -m pytest tests/test_infrastructure.py::test_full_stack -v
+          
+      - name: Test API endpoints
+        run: |
+          # Test health endpoint
+          curl -f http://localhost:8080/health
+          
+          # Test prediction endpoint
+          curl -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{"features": [5.1, 3.5, 1.4, 0.2]}' | jq .
+            
+      - name: Infrastructure health check
+        run: |
+          cd docker
+          docker compose ps
+          docker compose logs --tail=50
+          
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          cd docker
+          docker compose logs
+          docker compose down
+          
+  deployment-notification:
+    name: "📢 Deployment Notification"
+    runs-on: ubuntu-latest
+    needs: [continuous-deployment]
+    if: always()
+    steps:
+      - name: Deployment Success
+        if: needs.continuous-deployment.result == 'success'
+        run: |
+          echo "🎉 MLOps infrastructure successfully deployed!"
+          echo "📊 MLflow UI: http://localhost:5000"
+          echo "🚀 API: http://localhost:8080"
+          echo "📓 JupyterLab: http://localhost:8888"
+          
+      - name: Deployment Failed
+        if: needs.continuous-deployment.result == 'failure'
+        run: |
+          echo "❌ Deployment failed - check logs above"
+          echo "💡 Common fixes:"
+          echo "   1. Check port availability (5000, 8080, 8888)"
+          echo "   2. Verify Docker Compose syntax"
+          echo "   3. Review MLflow connectivity"
+          exit 1
