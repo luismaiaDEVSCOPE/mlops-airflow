@@ -1,53 +1,304 @@
 
-# Class III: Automating Infrastructure Deployment with CI/CD
+# Class III: MLOps Automation with GitHub Actions + Airflow Integration
 
-## Goal
-Building on Class II's Infrastructure as Code foundation, learn to automate the entire MLOps infrastructure deployment using CI/CD pipelines. Transform manual `docker compose up` commands into automated, version-controlled deployment workflows.
+## 🎯 Learning Objectives
 
-## Key Learning Outcomes
-- **Infrastructure Automation**: Deploy MLOps stacks automatically via CI/CD
-- **GitOps Principles**: Infrastructure changes driven by Git commits  
-- **Pipeline Design**: Build robust, multi-stage deployment pipelines
-- **Production Readiness**: Prepare for scalable, automated deployments
+Transform manual MLOps workflows into **fully automated CI/CD pipelines** that integrate **GitHub Actions** with **Apache Airflow** for enterprise-grade ML orchestration.
 
-## Main Tools
-- **GitHub Actions**: CI/CD orchestration and automation
-- **Docker & Docker Compose**: Infrastructure as Code from Class II
-- **MLflow**: Automated experiment tracking and model registry
-- **GitOps Workflow**: Infrastructure changes via Git commits
+### What You'll Build:
+- **Automated Infrastructure**: Deploy MLOps stack via GitHub Actions
+- **ML Pipeline Orchestration**: Use Airflow to manage complex ML workflows  
+- **GitOps Integration**: Code changes trigger automated ML retraining
+- **Production-Ready Setup**: Multi-service architecture with monitoring
 
-## Class Structure
+## 🏗️ Architecture Overview
 
-### 1. From Manual to Automated Infrastructure (20 min)
-- **Review Class II**: Manual infrastructure deployment with `docker compose up`
-- **The Challenge**: How to automate infrastructure changes across environments?
-- **GitOps Introduction**: Infrastructure changes driven by Git commits
-- **Demo**: Show the target - automated deployment triggered by code changes
+```
+GitHub Push → GitHub Actions → Docker Compose → Airflow → MLflow → API
+     ↓              ↓              ↓           ↓        ↓      ↓
+   Trigger      CI/CD Tests    Infrastructure  ML     Model   Serving
+               Validation      Deployment   Workflows Registry
+```
 
-### 2. Building the Infrastructure Automation Pipeline (60 min)
-Transform the manual Docker Compose setup into an automated CI/CD pipeline:
+### Services Deployed:
+- **🔬 MLflow** (port 5000): Experiment tracking & model registry
+- **🚁 Airflow** (port 8080): ML workflow orchestration  
+- **🚀 API** (port 8081): Model serving endpoint
+- **🐘 PostgreSQL** (port 5432): Airflow metadata database
 
-#### Stage 1: Infrastructure Validation (CI)
-- **Code Quality**: Automated testing of infrastructure code
-- **Lint Docker Compose files**: Validate YAML syntax and best practices  
-- **Security Scanning**: Check for vulnerabilities in container images
-- **Infrastructure Tests**: Validate service connectivity and health checks
+## 🚀 Quick Start
 
-#### Stage 2: Automated Model Training & Registry (CT - Continuous Training)  
-- **Triggered Training**: Automatic model retraining on data/code changes
-- **MLflow Integration**: Automated experiment tracking and model registration
-- **Model Validation**: Automated model performance validation
-- **Artifact Management**: Automated model artifact storage and versioning
+### Prerequisites
+- Git & GitHub account
+- Docker & Docker Compose
+- 8GB+ RAM recommended (for all services)
 
-#### Stage 3: Infrastructure Deployment (CD - Continuous Deployment)
-- **Environment Provisioning**: Automated deployment of the full MLOps stack
-- **Service Orchestration**: Automated startup sequence (MLflow → API → Health checks)
-- **Rollback Capability**: Automated rollback on deployment failures
-- **Environment Promotion**: Dev → Staging → Production pipeline
+### 1. Setup Repository
+```bash
+# Fork this repository to your GitHub account
+# Clone your fork
+git clone <your-fork-url>
+cd aulas/aula3_case_study
 
-### 3. Testing the Automated Pipeline & Production Readiness (10 min)
-- **End-to-End Demo**: Code change → Git push → Automated deployment → Live testing
-- **Monitoring & Observability**: How to monitor automated deployments
+# Create environment file for Airflow
+echo "AIRFLOW_UID=$(id -u)" > .env
+```
+
+### 2. Test Local Deployment
+```bash
+# Deploy the full stack locally
+cd docker
+docker compose up -d
+
+# Check service status
+docker compose ps
+
+# View logs
+docker compose logs -f
+```
+
+### 3. Access Services
+- **Airflow UI**: http://localhost:8080 (admin/admin)
+- **MLflow UI**: http://localhost:5000  
+- **API**: http://localhost:8081
+
+### 4. Trigger GitHub Actions
+```bash
+# Make a change and push to trigger CI/CD
+echo "# Updated" >> README.md
+git add README.md
+git commit -m "Trigger CI/CD pipeline"
+git push origin main
+```
+
+## 🔄 CI/CD Pipeline Flow
+
+### Stage 1: Infrastructure Validation
+```yaml
+✅ Lint Python code (flake8)
+✅ Validate Docker Compose syntax  
+✅ Security scan Dockerfiles
+✅ Test service configurations
+```
+
+### Stage 2: Continuous Training (CT)
+```yaml
+✅ Start MLflow tracking server
+✅ Run automated model training
+✅ Validate model performance
+✅ Archive training artifacts
+```
+
+### Stage 3: Continuous Deployment (CD)
+```yaml
+✅ Build Docker images
+✅ Deploy full MLOps stack
+✅ Initialize Airflow & PostgreSQL
+✅ Trigger Airflow ML pipeline
+```
+
+### Stage 4: Integration Testing
+```yaml
+✅ Test API endpoints
+✅ Validate service connectivity  
+✅ Monitor Airflow DAG execution
+✅ Send deployment notifications
+```
+
+## 🚁 Airflow Integration
+
+### MLOps DAG: `mlops_github_integration_pipeline`
+
+The Airflow DAG orchestrates the complete ML lifecycle:
+
+```python
+check_mlflow → prepare_data → train_models → register_best_model
+                                    ↓
+validate_deployment → send_notification → cleanup
+```
+
+### Key Features:
+- **Automated Triggering**: GitHub Actions triggers Airflow DAGs
+- **ML Workflow Management**: Multi-step model training & validation
+- **Model Registry Integration**: Automatic model registration in MLflow
+- **Error Handling**: Robust retry logic and failure notifications
+
+### Airflow Tasks:
+1. **🔍 Check MLflow Connection**: Verify tracking server connectivity
+2. **📊 Prepare Training Data**: Generate synthetic bonsai dataset  
+3. **🤖 Train Model Experiments**: Multiple model configurations
+4. **📦 Register Best Model**: MLflow Model Registry integration
+5. **✅ Validate Deployment**: Test model loading & inference
+6. **📢 Send Notification**: Pipeline completion alerts
+
+## 🛠️ Configuration
+
+### Environment Variables
+```bash
+# MLflow Configuration
+MLFLOW_TRACKING_URI=http://mlflow:5000
+
+# Airflow Configuration  
+AIRFLOW_UID=50000
+AIRFLOW__CORE__EXECUTOR=LocalExecutor
+
+# Database Configuration
+POSTGRES_USER=airflow
+POSTGRES_PASSWORD=airflow
+POSTGRES_DB=airflow
+```
+
+### GitHub Secrets (Optional)
+```bash
+DOCKER_REGISTRY=your-registry.com
+DEPLOY_ENVIRONMENT=staging
+SLACK_WEBHOOK_URL=https://hooks.slack.com/...
+```
+
+## 🧪 Testing the Pipeline
+
+### Manual API Testing
+```bash
+# Health check
+curl http://localhost:8081/health
+
+# Prediction test
+curl -X POST http://localhost:8081/predict \
+  -H "Content-Type: application/json" \
+  -d '{"features": [2.0, 1.5, 5.0, 25.0]}'
+```
+
+### Airflow DAG Testing
+```bash
+# List available DAGs
+docker compose exec airflow-webserver airflow dags list
+
+# Trigger DAG manually
+docker compose exec airflow-webserver airflow dags trigger mlops_github_integration_pipeline
+
+# Check DAG run status
+docker compose exec airflow-webserver airflow dags state mlops_github_integration_pipeline 2024-01-01
+```
+
+### Integration Tests
+```bash
+# Run automated tests
+python -m pytest tests/ -v
+
+# Test specific components
+python -m pytest tests/test_api.py -v
+python -m pytest tests/test_infrastructure.py -v
+```
+
+## 🔍 Monitoring & Debugging
+
+### Service Health Checks
+```bash
+# Check all services
+docker compose ps
+
+# Service-specific logs
+docker compose logs mlflow
+docker compose logs airflow-webserver  
+docker compose logs airflow-scheduler
+docker compose logs postgres
+docker compose logs api
+```
+
+### Airflow Debugging
+```bash
+# Access Airflow container
+docker compose exec airflow-webserver bash
+
+# Check Airflow configuration
+airflow config list
+
+# View DAG details
+airflow dags show mlops_github_integration_pipeline
+```
+
+### Common Issues & Solutions
+
+**🔥 Port Conflicts**
+```bash
+# Check port usage
+netstat -tulpn | grep -E "(5000|8080|8081|5432)"
+
+# Stop conflicting services
+sudo systemctl stop apache2  # if using port 8080
+```
+
+**🔥 MLflow Connection Issues**
+```bash
+# Check MLflow health
+curl http://localhost:5000/health
+
+# Restart MLflow service
+docker compose restart mlflow
+```
+
+**🔥 Airflow Initialization Problems**
+```bash
+# Check Airflow logs
+docker compose logs airflow-init
+
+# Reset Airflow database
+docker compose down -v
+docker compose up airflow-init
+```
+
+## 📊 Production Considerations
+
+### Scaling to Cloud
+- **AWS**: Use ECS/EKS for container orchestration
+- **Azure**: Deploy to ACI/AKS with Azure ML integration
+- **GCP**: Use Cloud Run/GKE with Vertex AI
+
+### Security Hardening
+- Use secrets management (AWS Secrets Manager, etc.)
+- Enable HTTPS/TLS for all services
+- Implement authentication & authorization
+- Regular vulnerability scanning
+
+### Monitoring & Observability  
+- **Metrics**: Prometheus + Grafana
+- **Logging**: ELK Stack (Elasticsearch, Logstash, Kibana)
+- **Tracing**: Jaeger for distributed tracing
+- **Alerting**: PagerDuty/Slack integration
+
+## 🎓 Learning Path
+
+**Class II** → **Class III** → **Class IV**
+```
+Infrastructure    →    CI/CD + Airflow    →    Cloud + Kubernetes
+   as Code             Orchestration           Production Scale
+```
+
+### Next Steps:
+1. **Explore Airflow UI**: Understand DAG visualization & monitoring
+2. **Customize Workflows**: Add your own ML tasks to the DAG
+3. **Scale Infrastructure**: Deploy to cloud environments  
+4. **Add Monitoring**: Implement comprehensive observability
+
+## 🤝 Contributing
+
+Found an issue? Want to add features?
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`  
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📚 Additional Resources
+
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html)  
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+
+---
+
+**🎉 Ready to automate your MLOps pipeline? Let's get started!**
 - **Production Considerations**: Scaling to cloud environments (AWS, Azure, GCP)
 - **Preview Next Class**: "Advanced orchestration with Kubernetes and Airflow!"
 
@@ -177,13 +428,4 @@ aula3_case_study/
 ├── notebooks/
 │   └── model_analysis.ipynb        # Interactive model analysis
 └── README.md                       # This file
-```
-
-## 🎯 Learning Progression
-
-**Class II (IaC)** → **Class III (CI/CD)** → **Class IV (Advanced Orchestration)**
-```
-Manual Docker Compose    →    Automated GitOps    →    Kubernetes & Airflow
-     (Infrastructure           (CI/CD Pipelines)        (Production Scale)
-      as Code)
 ```

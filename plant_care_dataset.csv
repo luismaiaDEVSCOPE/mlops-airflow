@@ -1,0 +1,17 @@
+customer_query,category,expected_response,urgency
+"My plant leaves are turning yellow, what should I do?",disease_diagnosis,Yellow leaves often indicate overwatering or nutrient deficiency. Check soil moisture and reduce watering frequency. Consider fertilizing if soil is depleted.,medium
+"My houseplant leaves are turning yellow, what should I do?",disease_diagnosis,Yellow leaves often indicate overwatering or nutrient deficiency. Check soil moisture and reduce watering frequency. Consider fertilizing if soil is depleted.,medium
+How often should I water my succulent?,watering_advice,"Succulents need infrequent watering. Water only when soil is completely dry, typically every 1-2 weeks. Ensure proper drainage.",low
+How often should I irrigate my succulent?,watering_advice,"Succulents need infrequent watering. Water only when soil is completely dry, typically every 1-2 weeks. Ensure proper drainage.",low
+"My plant has white spots on leaves, is it sick?",disease_diagnosis,White spots could indicate powdery mildew or pest infestation. Isolate the plant and treat with appropriate fungicide or insecticidal soap.,high
+"My houseplant has white spots on leaves, is it sick?",disease_diagnosis,White spots could indicate powdery mildew or pest infestation. Isolate the plant and treat with appropriate fungicide or insecticidal soap.,high
+What's the best fertilizer for indoor plants?,fertilizer_advice,"Use balanced liquid fertilizer (20-20-20) diluted to half strength. Apply monthly during growing season, less in winter.",low
+What's the best fertilizer for indoor houseplants?,fertilizer_advice,"Use balanced liquid fertilizer (20-20-20) diluted to half strength. Apply monthly during growing season, less in winter.",low
+"My plant isn't growing, help!",growth_issues,"Slow growth can be due to insufficient light, poor soil, or wrong season. Check light requirements and consider repotting with fresh soil.",medium
+"My houseplant isn't growing, help!",growth_issues,"Slow growth can be due to insufficient light, poor soil, or wrong season. Check light requirements and consider repotting with fresh soil.",medium
+Can I propagate my plant? How?,propagation,"Most plants can be propagated through stem cuttings. Cut healthy stem, remove lower leaves, place in water or soil. Keep humid and wait for roots.",low
+Can I propagate my houseplant? How?,propagation,"Most plants can be propagated through stem cuttings. Cut healthy stem, remove lower leaves, place in water or soil. Keep humid and wait for roots.",low
+My plant is drooping and looks sad!,general_health,Drooping usually indicates watering issues. Check soil moisture - it could be too dry or too wet. Adjust watering accordingly.,medium
+My houseplant is drooping and looks sad!,general_health,Drooping usually indicates watering issues. Check soil moisture - it could be too dry or too wet. Adjust watering accordingly.,medium
+What temperature is best for houseplants?,environmental_conditions,Most houseplants prefer temperatures between 65-75°F (18-24°C). Avoid cold drafts and sudden temperature changes.,low
+What temperature is best for househouseplants?,environmental_conditions,Most houseplants prefer temperatures between 65-75°F (18-24°C). Avoid cold drafts and sudden temperature changes.,low
